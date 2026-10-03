@@ -4,6 +4,7 @@ import { ApiError } from '../utils/apiError';
 import { comparePassword, DUMMY_HASH, hashPassword } from '../utils/password';
 import { hashToken, signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/token';
 import type { ChangePasswordInput, LoginInput, RegisterInput } from '../validators/auth.validator';
+import { createNotification } from './notification.service';
 
 export interface SafeUser {
   id: string;
@@ -238,10 +239,25 @@ export const changePassword = async (
 ): Promise<ChangePasswordResult> => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
+    include: {
+      technicianApplication: {
+        include: {
+          skills: true,
+        },
+      },
+    },
   });
 
   if (!user || user.deletedAt !== null) {
     throw new ApiError(401, 'User no longer exists');
+  }
+
+  if (
+    user.mustChangePassword &&
+    user.oneTimePasswordExpiresAt &&
+    user.oneTimePasswordExpiresAt.getTime() < Date.now()
+  ) {
+    throw new ApiError(401, 'One-time password has expired. Please contact the admin');
   }
 
   if (!user.passwordHash) {
@@ -255,15 +271,82 @@ export const changePassword = async (
 
   const newPasswordHash = await hashPassword(input.newPassword);
 
+  const shouldActivateTechnician =
+    user.mustChangePassword &&
+    user.role === 'CUSTOMER' &&
+    user.technicianApplication?.status === 'APPROVED';
+
   return prisma.$transaction(async (tx) => {
+    let finalRole: Role = user.role;
+
+    if (shouldActivateTechnician) {
+      finalRole = 'TECHNICIAN';
+    }
+
     const updatedUser = await tx.user.update({
       where: { id: userId },
       data: {
         passwordHash: newPasswordHash,
         mustChangePassword: false,
         oneTimePasswordExpiresAt: null,
+        ...(shouldActivateTechnician && { role: 'TECHNICIAN' }),
       },
     });
+
+    if (shouldActivateTechnician && user.technicianApplication) {
+      const app = user.technicianApplication;
+
+      await tx.customerProfile.updateMany({
+        where: { userId, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
+
+      const techProfile = await tx.technicianProfile.upsert({
+        where: { userId },
+        update: {
+          phone: app.phone,
+          address: app.address,
+          bio: app.bio,
+          serviceArea: app.serviceArea,
+          yearsOfExperience: app.yearsOfExperience,
+          isActive: true,
+          deletedAt: null,
+        },
+        create: {
+          userId,
+          phone: app.phone,
+          address: app.address,
+          bio: app.bio,
+          serviceArea: app.serviceArea,
+          yearsOfExperience: app.yearsOfExperience,
+          isActive: true,
+          deletedAt: null,
+        },
+      });
+
+      await tx.technicianSkill.deleteMany({
+        where: { technicianProfileId: techProfile.id },
+      });
+
+      if (app.skills.length > 0) {
+        await tx.technicianSkill.createMany({
+          data: app.skills.map((s) => ({
+            technicianProfileId: techProfile.id,
+            skillId: s.skillId,
+          })),
+        });
+      }
+
+      await createNotification(
+        {
+          userId,
+          type: 'TECHNICIAN_ACTIVATED',
+          title: 'Technician account activated',
+          message: 'Your technician account is now active.',
+        },
+        tx,
+      );
+    }
 
     await tx.refreshToken.updateMany({
       where: {
@@ -275,7 +358,7 @@ export const changePassword = async (
       },
     });
 
-    const tokens = await issueTokens(userId, updatedUser.role, tx);
+    const tokens = await issueTokens(userId, finalRole, tx);
 
     return {
       user: toSafeUser(updatedUser),
