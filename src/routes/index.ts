@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { sendSuccess } from '../utils/response';
+import authRoutes from './auth.routes';
 
 const router = Router();
 
@@ -13,5 +14,7 @@ router.get('/health', (_req, res) => {
     },
   });
 });
+
+router.use('/auth', authRoutes);
 
 export default router;
