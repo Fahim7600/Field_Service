@@ -1,4 +1,5 @@
 import type { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
+import multer from 'multer';
 import { ZodError } from 'zod';
 import { ApiError } from '../utils/apiError';
 
@@ -16,6 +17,15 @@ export const errorHandler: ErrorRequestHandler = (
     statusCode = err.statusCode;
     message = err.message;
     errors = err.errors;
+  } else if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      statusCode = 413;
+      message = 'File is too large (max 5 MB)';
+    } else {
+      statusCode = 400;
+      message = err.message;
+    }
+    errors = [];
   } else if (err instanceof ZodError) {
     statusCode = 422;
     message = 'Validation failed';
