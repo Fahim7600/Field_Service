@@ -1,0 +1,15 @@
+model ServiceReport {
+  id           String    @id @default(uuid())
+  workOrderId  String    @unique
+  workOrder    WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Restrict)
+  technicianId String
+  technician   User      @relation(fields: [technicianId], references: [id], onDelete: Restrict)
+  workDone     String
+  partsUsed    Json      @default("[]")
+  hoursSpent   Decimal   @db.Decimal(5, 2)
+  photos       Json      @default("[]")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("service_reports")
+}

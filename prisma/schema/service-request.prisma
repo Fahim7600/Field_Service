@@ -1,0 +1,28 @@
+model ServiceRequest {
+  id              String               @id @default(uuid())
+  requestNumber   String               @unique
+  customerId      String
+  customer        User                 @relation("RequestCustomer", fields: [customerId], references: [id], onDelete: Restrict)
+  categoryId      String
+  category        ServiceCategory      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  title           String
+  description     String
+  address         String
+  preferredAt     DateTime
+  priority        Priority             @default(NORMAL)
+  status          ServiceRequestStatus @default(SUBMITTED)
+  reviewDueAt     DateTime
+  reviewedById    String?
+  reviewedBy      User?                @relation("RequestReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+  reviewedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  deletedAt       DateTime?
+  attachments     Attachment[]
+  workOrder       WorkOrder?
+
+  @@index([status, priority, createdAt])
+  @@index([customerId])
+  @@map("service_requests")
+}

@@ -1,0 +1,10 @@
+model Skill {
+  id                String             @id @default(uuid())
+  name              String             @unique
+  createdAt         DateTime           @default(now())
+  technicianSkills  TechnicianSkill[]
+  applicationSkills ApplicationSkill[]
+  serviceCategories ServiceCategory[]
+
+  @@map("skills")
+}

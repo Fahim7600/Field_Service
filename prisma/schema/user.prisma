@@ -1,0 +1,35 @@
+model User {
+  id                       String                   @id @default(uuid())
+  name                     String
+  email                    String                   @unique
+  passwordHash             String?
+  googleId                 String?                  @unique
+  role                     Role                     @default(CUSTOMER)
+  status                   UserStatus               @default(ACTIVE)
+  mustChangePassword       Boolean                  @default(false)
+  oneTimePasswordExpiresAt DateTime?
+  lastLoginAt              DateTime?
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
+  deletedAt                DateTime?
+  refreshTokens            RefreshToken[]
+  customerProfile          CustomerProfile?
+  technicianProfile        TechnicianProfile?
+  technicianApplication    TechnicianApplication?   @relation("ApplicationApplicant")
+  reviewedApplications     TechnicianApplication[]  @relation("ApplicationReviewer")
+  customerServiceRequests  ServiceRequest[]         @relation("RequestCustomer")
+  reviewedServiceRequests  ServiceRequest[]         @relation("RequestReviewer")
+  customerWorkOrders       WorkOrder[]              @relation("WorkOrderCustomer")
+  technicianWorkOrders     WorkOrder[]              @relation("WorkOrderTechnician")
+  workOrderStatusHistory   WorkOrderStatusHistory[]
+  serviceReports           ServiceReport[]
+  invoices                 Invoice[]
+  payments                 Payment[]
+  subscriptions            Subscription[]
+  customerFeedbacks        Feedback[]               @relation("FeedbackCustomer")
+  technicianFeedbacks      Feedback[]               @relation("FeedbackTechnician")
+  notifications            Notification[]
+  auditLogs                AuditLog[]
+
+  @@map("users")
+}

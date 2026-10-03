@@ -1,0 +1,26 @@
+model TechnicianApplication {
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  user               User               @relation("ApplicationApplicant", fields: [userId], references: [id], onDelete: Restrict)
+  status             ApplicationStatus  @default(PENDING)
+  yearsOfExperience  Int
+  idType             IdType
+  idNumber           String
+  phone              String
+  address            String
+  serviceArea        String
+  bio                String
+  idDocumentUrl      String
+  idDocumentPublicId String
+  reviewedById       String?
+  reviewedBy         User?              @relation("ApplicationReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+  reviewedAt         DateTime?
+  rejectionReason    String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  skills             ApplicationSkill[]
+
+  @@unique([idType, idNumber])
+  @@index([status, createdAt])
+  @@map("technician_applications")
+}

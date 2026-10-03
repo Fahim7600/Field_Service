@@ -1,0 +1,15 @@
+model InvoiceItem {
+  id              String          @id @default(uuid())
+  invoiceId       String
+  invoice         Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  type            InvoiceItemType
+  description     String
+  quantity        Int             @default(1)
+  unitAmountCents Int
+  amountCents     Int
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+}

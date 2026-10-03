@@ -1,0 +1,15 @@
+model ServiceCategory {
+  id              String           @id @default(uuid())
+  name            String           @unique
+  description     String?
+  skillId         String
+  skill           Skill            @relation(fields: [skillId], references: [id], onDelete: Restrict)
+  basePriceCents  Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  serviceRequests ServiceRequest[]
+
+  @@index([skillId])
+  @@map("service_categories")
+}

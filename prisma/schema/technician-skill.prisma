@@ -1,0 +1,11 @@
+model TechnicianSkill {
+  technicianProfileId String
+  technicianProfile   TechnicianProfile @relation(fields: [technicianProfileId], references: [id], onDelete: Cascade)
+  skillId             String
+  skill               Skill             @relation(fields: [skillId], references: [id], onDelete: Restrict)
+  createdAt           DateTime          @default(now())
+
+  @@id([technicianProfileId, skillId])
+  @@index([skillId])
+  @@map("technician_skills")
+}

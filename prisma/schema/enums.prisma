@@ -1,0 +1,87 @@
+enum Role {
+  CUSTOMER
+  TECHNICIAN
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum IdType {
+  NID
+  PASSPORT
+  DRIVING_LICENSE
+}
+
+enum Priority {
+  NORMAL
+  HIGH
+}
+
+enum ServiceRequestStatus {
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum WorkOrderStatus {
+  APPROVED
+  ASSIGNED
+  SCHEDULED
+  ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  INVOICED
+  PAID
+  CLOSED
+  CANCELLED
+}
+
+enum InvoiceType {
+  MAIN
+  LATE_FEE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  VOID
+}
+
+enum InvoiceItemType {
+  LABOR
+  PARTS
+  EXTRA
+  DISCOUNT
+  TAX
+  LATE_FEE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum PlanInterval {
+  MONTH
+  YEAR
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+}

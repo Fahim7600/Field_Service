@@ -1,0 +1,9 @@
+model ApplicationSkill {
+  applicationId String
+  application   TechnicianApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  skillId       String
+  skill         Skill                 @relation(fields: [skillId], references: [id], onDelete: Restrict)
+
+  @@id([applicationId, skillId])
+  @@map("application_skills")
+}

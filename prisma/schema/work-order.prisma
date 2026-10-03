@@ -1,0 +1,30 @@
+model WorkOrder {
+  id               String                   @id @default(uuid())
+  serviceRequestId String                   @unique
+  serviceRequest   ServiceRequest           @relation(fields: [serviceRequestId], references: [id], onDelete: Restrict)
+  customerId       String
+  customer         User                     @relation("WorkOrderCustomer", fields: [customerId], references: [id], onDelete: Restrict)
+  technicianId     String?
+  technician       User?                    @relation("WorkOrderTechnician", fields: [technicianId], references: [id], onDelete: Restrict)
+  status           WorkOrderStatus          @default(APPROVED)
+  visitStart       DateTime?
+  visitEnd         DateTime?
+  acceptedAt       DateTime?
+  arrivedAt        DateTime?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  cancelledAt      DateTime?
+  cancelReason     String?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  deletedAt        DateTime?
+  statusHistory    WorkOrderStatusHistory[]
+  serviceReport    ServiceReport?
+  invoices         Invoice[]
+  feedback         Feedback?
+
+  @@index([technicianId, visitStart, visitEnd])
+  @@index([status])
+  @@index([customerId])
+  @@map("work_orders")
+}

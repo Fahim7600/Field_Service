@@ -1,0 +1,14 @@
+model SubscriptionPlan {
+  id            String         @id @default(uuid())
+  name          String         @unique
+  interval      PlanInterval
+  priceCents    Int
+  currency      String         @default("usd")
+  stripePriceId String?        @unique
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subscriptions Subscription[]
+
+  @@map("subscription_plans")
+}

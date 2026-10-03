@@ -1,0 +1,31 @@
+model Invoice {
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique
+  type          InvoiceType   @default(MAIN)
+  workOrderId   String
+  workOrder     WorkOrder     @relation(fields: [workOrderId], references: [id], onDelete: Restrict)
+  customerId    String
+  customer      User          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  status        InvoiceStatus @default(DRAFT)
+  currency      String        @default("usd")
+  laborCents    Int           @default(0)
+  partsCents    Int           @default(0)
+  extraCents    Int           @default(0)
+  discountCents Int           @default(0)
+  taxCents      Int           @default(0)
+  totalCents    Int           @default(0)
+  notes         String?
+  issuedAt      DateTime?
+  paidAt        DateTime?
+  voidedAt      DateTime?
+  voidReason    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
+  items         InvoiceItem[]
+  payments      Payment[]
+
+  @@index([customerId, status])
+  @@index([workOrderId])
+  @@map("invoices")
+}

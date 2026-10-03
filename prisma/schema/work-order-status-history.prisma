@@ -1,0 +1,14 @@
+model WorkOrderStatusHistory {
+  id          String           @id @default(uuid())
+  workOrderId String
+  workOrder   WorkOrder        @relation(fields: [workOrderId], references: [id], onDelete: Restrict)
+  fromStatus  WorkOrderStatus?
+  toStatus    WorkOrderStatus
+  changedById String
+  changedBy   User             @relation(fields: [changedById], references: [id], onDelete: Restrict)
+  note        String?
+  createdAt   DateTime         @default(now())
+
+  @@index([workOrderId])
+  @@map("work_order_status_history")
+}
