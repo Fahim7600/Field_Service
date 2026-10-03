@@ -26,5 +26,7 @@ router.patch(
   validate({ body: changePasswordSchema }),
   authController.changePassword,
 );
+router.get('/google', authController.googleAuth);
+router.get('/google/callback', authController.googleCallback);
 
 export default router;
