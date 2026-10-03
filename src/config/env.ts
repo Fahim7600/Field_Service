@@ -15,6 +15,9 @@ const envSchema = z
     JWT_REFRESH_SECRET: z.string().min(32),
     JWT_ACCESS_EXPIRES_MINUTES: z.coerce.number().default(15),
     JWT_REFRESH_EXPIRES_DAYS: z.coerce.number().default(7),
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+    GOOGLE_CALLBACK_URL: z.string().optional(),
   })
   .refine((data) => data.JWT_ACCESS_SECRET !== data.JWT_REFRESH_SECRET, {
     message: 'JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different',
