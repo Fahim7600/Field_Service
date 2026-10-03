@@ -1,6 +1,10 @@
 import { Router } from 'express';
+import { authenticate, authorize } from '../middlewares/auth';
 import { sendSuccess } from '../utils/response';
+import adminRoutes from './admin.routes';
 import authRoutes from './auth.routes';
+import catalogRoutes from './catalog.routes';
+import userRoutes from './user.routes';
 
 const router = Router();
 
@@ -16,5 +20,8 @@ router.get('/health', (_req, res) => {
 });
 
 router.use('/auth', authRoutes);
+router.use('/users', userRoutes);
+router.use('/', catalogRoutes);
+router.use('/admin', authenticate, authorize('ADMIN'), adminRoutes);
 
 export default router;
