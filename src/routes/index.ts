@@ -5,6 +5,8 @@ import adminRoutes from './admin.routes';
 import authRoutes from './auth.routes';
 import catalogRoutes from './catalog.routes';
 import customerRoutes from './customer.routes';
+import invoiceRoutes from './invoice.routes';
+import paymentRoutes from './payment.routes';
 import serviceRequestRoutes from './service-request.routes';
 import technicianRoutes from './technician.routes';
 import technicianApplicationRoutes from './technician-application.routes';
@@ -31,6 +33,8 @@ router.use('/technicians', technicianRoutes);
 router.use('/technician-applications', technicianApplicationRoutes);
 router.use('/service-requests', serviceRequestRoutes);
 router.use('/work-orders', workOrderRoutes);
+router.use('/invoices', invoiceRoutes);
+router.use('/payments', paymentRoutes);
 router.use('/', catalogRoutes);
 router.use('/admin', authenticate, authorize('ADMIN'), adminRoutes);
 
