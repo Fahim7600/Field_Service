@@ -1,8 +1,9 @@
 import type { Request, Response } from 'express';
 import * as technicianService from '../services/technician.service';
+import * as workOrderService from '../services/work-order.service';
 import { ApiError } from '../utils/apiError';
 import { asyncHandler } from '../utils/asyncHandler';
-import { sendSuccess } from '../utils/response';
+import { sendPaginated, sendSuccess } from '../utils/response';
 
 export const updateProfile = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
@@ -25,5 +26,19 @@ export const updateSkills = asyncHandler(async (req: Request, res: Response) => 
     statusCode: 200,
     message: 'Skills updated successfully',
     data: result,
+  });
+});
+
+export const getMySchedule = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ApiError(401, 'Authentication required');
+  }
+  const result = await workOrderService.getTechnicianSchedule(req.user.id, {
+    page: Number(req.query.page) || 1,
+    limit: Number(req.query.limit) || 10,
+  });
+  return sendPaginated(res, {
+    message: 'Technician schedule fetched successfully',
+    ...result,
   });
 });
