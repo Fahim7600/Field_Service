@@ -105,6 +105,20 @@ async function main() {
     });
   }
 
+  if (process.env.STRIPE_PRICE_MONTHLY) {
+    await prisma.subscriptionPlan.updateMany({
+      where: { interval: PlanInterval.MONTH },
+      data: { stripePriceId: process.env.STRIPE_PRICE_MONTHLY },
+    });
+  }
+
+  if (process.env.STRIPE_PRICE_YEARLY) {
+    await prisma.subscriptionPlan.updateMany({
+      where: { interval: PlanInterval.YEAR },
+      data: { stripePriceId: process.env.STRIPE_PRICE_YEARLY },
+    });
+  }
+
   const skillCount = await prisma.skill.count();
   const categoryCount = await prisma.serviceCategory.count();
   const planCount = await prisma.subscriptionPlan.count();

@@ -31,6 +31,8 @@ const envSchema = z
     STRIPE_WEBHOOK_SECRET: z.string().optional(),
     PUBLIC_API_URL: z.string().default('http://localhost:5000'),
     TAX_PERCENT: z.coerce.number().min(0).max(100).default(0),
+    STRIPE_PRICE_MONTHLY: z.string().optional(),
+    STRIPE_PRICE_YEARLY: z.string().optional(),
   })
   .refine((data) => data.JWT_ACCESS_SECRET !== data.JWT_REFRESH_SECRET, {
     message: 'JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different',
