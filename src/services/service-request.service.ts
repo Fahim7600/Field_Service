@@ -1,4 +1,5 @@
 import type { Prisma, Role } from '@prisma/client';
+import { isCloudinaryConfigured } from '../config/cloudinary';
 import { prisma } from '../config/prisma';
 import { ApiError } from '../utils/apiError';
 import type {
@@ -8,7 +9,7 @@ import type {
   UpdateServiceRequestInput,
 } from '../validators/service-request.validator';
 import { getPremiumStatus } from './premium.service';
-import { getSignedImageUrl } from './upload.service';
+import { deleteAsset, getSignedImageUrl, uploadPrivateImage } from './upload.service';
 
 type ServiceRequestDetailRow = Prisma.ServiceRequestGetPayload<{
   include: {
@@ -366,4 +367,145 @@ export const deleteServiceRequest = async (userId: string, id: string) => {
     }
     throw new ApiError(409, 'Only SUBMITTED requests can be deleted');
   }
+};
+
+export const uploadAttachments = async (
+  userId: string,
+  id: string,
+  files?: Express.Multer.File[],
+) => {
+  if (!isCloudinaryConfigured()) {
+    throw new ApiError(503, 'File upload is not configured');
+  }
+
+  if (!files || !Array.isArray(files) || files.length === 0) {
+    throw new ApiError(422, 'At least one image is required');
+  }
+
+  const request = await prisma.serviceRequest.findFirst({
+    where: { id },
+  });
+  if (!request || request.deletedAt !== null || request.customerId !== userId) {
+    throw new ApiError(404, 'Service request not found');
+  }
+  if (request.status !== 'SUBMITTED') {
+    throw new ApiError(409, 'Attachments can only be changed while the request is SUBMITTED');
+  }
+
+  const existingCount = await prisma.attachment.count({
+    where: { serviceRequestId: id, deletedAt: null },
+  });
+  if (existingCount + files.length > 5) {
+    throw new ApiError(
+      422,
+      `You can attach at most 5 files per request (already ${existingCount})`,
+    );
+  }
+
+  const uploadedAssets: Array<{
+    url: string;
+    publicId: string;
+    fileName: string;
+    mimeType: string;
+    sizeBytes: number;
+  }> = [];
+
+  try {
+    for (const file of files) {
+      const uploadRes = await uploadPrivateImage(
+        file.buffer,
+        `field-service/service-requests/${id}`,
+      );
+      uploadedAssets.push({
+        url: uploadRes.url,
+        publicId: uploadRes.publicId,
+        fileName: file.originalname.slice(0, 255),
+        mimeType: file.mimetype,
+        sizeBytes: file.size,
+      });
+    }
+  } catch {
+    for (const asset of uploadedAssets) {
+      await deleteAsset(asset.publicId).catch(() => {});
+    }
+    throw new ApiError(502, 'File upload failed');
+  }
+
+  try {
+    const createdAttachments = await prisma.$transaction(
+      async (tx) => {
+        const locked = await tx.$queryRaw<
+          Array<{ id: string }>
+        >`SELECT id FROM service_requests WHERE id = ${id} FOR UPDATE`;
+        if (!locked || locked.length === 0) {
+          throw new ApiError(404, 'Service request not found');
+        }
+
+        const currentCount = await tx.attachment.count({
+          where: { serviceRequestId: id, deletedAt: null },
+        });
+        if (currentCount + uploadedAssets.length > 5) {
+          throw new ApiError(
+            422,
+            `You can attach at most 5 files per request (already ${currentCount})`,
+          );
+        }
+
+        const results = [];
+        for (const asset of uploadedAssets) {
+          const row = await tx.attachment.create({
+            data: {
+              serviceRequestId: id,
+              url: asset.url,
+              publicId: asset.publicId,
+              fileName: asset.fileName,
+              mimeType: asset.mimeType,
+              sizeBytes: asset.sizeBytes,
+            },
+          });
+          results.push(row);
+        }
+        return results;
+      },
+      { timeout: 20000, maxWait: 20000 },
+    );
+
+    return createdAttachments.map((a) => ({
+      id: a.id,
+      fileName: a.fileName,
+      mimeType: a.mimeType,
+      sizeBytes: a.sizeBytes,
+      url: getSignedImageUrl(a.publicId, a.url),
+      createdAt: a.createdAt,
+    }));
+  } catch (err) {
+    for (const asset of uploadedAssets) {
+      await deleteAsset(asset.publicId).catch(() => {});
+    }
+    throw err;
+  }
+};
+
+export const deleteAttachment = async (userId: string, id: string, attachmentId: string) => {
+  const request = await prisma.serviceRequest.findFirst({
+    where: { id },
+  });
+  if (!request || request.deletedAt !== null || request.customerId !== userId) {
+    throw new ApiError(404, 'Service request not found');
+  }
+  if (request.status !== 'SUBMITTED') {
+    throw new ApiError(409, 'Attachments can only be changed while the request is SUBMITTED');
+  }
+
+  const attachment = await prisma.attachment.findFirst({
+    where: { id: attachmentId, serviceRequestId: id, deletedAt: null },
+  });
+  if (!attachment) {
+    throw new ApiError(404, 'Attachment not found');
+  }
+
+  await prisma.attachment.update({
+    where: { id: attachmentId },
+    data: { deletedAt: new Date() },
+  });
 };

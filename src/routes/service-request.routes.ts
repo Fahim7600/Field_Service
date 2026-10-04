@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import * as serviceRequestController from '../controllers/service-request.controller';
 import { authenticate, authorize } from '../middlewares/auth';
+import { uploadMultipleImages } from '../middlewares/upload';
 import { validate } from '../middlewares/validate';
 import { idParamSchema } from '../validators/common.validator';
 import {
+  attachmentParamSchema,
   createServiceRequestSchema,
   listServiceRequestsQuery,
   searchServiceRequestsQuery,
@@ -54,6 +56,21 @@ router.delete(
   authorize('CUSTOMER'),
   validate({ params: idParamSchema }),
   serviceRequestController.deleteServiceRequest,
+);
+
+router.post(
+  '/:id/attachments',
+  authorize('CUSTOMER'),
+  uploadMultipleImages('files', 5),
+  validate({ params: idParamSchema }),
+  serviceRequestController.uploadAttachments,
+);
+
+router.delete(
+  '/:id/attachments/:attachmentId',
+  authorize('CUSTOMER'),
+  validate({ params: attachmentParamSchema }),
+  serviceRequestController.deleteAttachment,
 );
 
 export default router;

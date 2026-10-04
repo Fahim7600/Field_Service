@@ -84,3 +84,30 @@ export const deleteServiceRequest = asyncHandler(async (req: Request, res: Respo
     data: {},
   });
 });
+
+export const uploadAttachments = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ApiError(401, 'Authentication required');
+  }
+  const attachments = await serviceRequestService.uploadAttachments(
+    req.user.id,
+    req.params.id,
+    req.files as Express.Multer.File[],
+  );
+  return sendSuccess(res, {
+    statusCode: 201,
+    message: 'Attachments uploaded successfully',
+    data: { attachments },
+  });
+});
+
+export const deleteAttachment = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ApiError(401, 'Authentication required');
+  }
+  await serviceRequestService.deleteAttachment(req.user.id, req.params.id, req.params.attachmentId);
+  return sendSuccess(res, {
+    message: 'Attachment removed successfully',
+    data: {},
+  });
+});
