@@ -4,10 +4,12 @@ import { writeAuditLog } from './audit.service';
 
 export const ACTIVE_VISIT_STATUSES: WorkOrderStatus[] = ['SCHEDULED', 'ARRIVED', 'IN_PROGRESS'];
 
+export type ActorRole = Role | 'SYSTEM';
+
 interface TransitionRule {
   from: WorkOrderStatus;
   to: WorkOrderStatus;
-  roles: Role[];
+  roles: ActorRole[];
 }
 
 const TRANSITIONS: TransitionRule[] = [
@@ -20,6 +22,10 @@ const TRANSITIONS: TransitionRule[] = [
   { from: 'APPROVED', to: 'CANCELLED', roles: ['CUSTOMER', 'ADMIN'] },
   { from: 'ASSIGNED', to: 'CANCELLED', roles: ['CUSTOMER', 'ADMIN'] },
   { from: 'SCHEDULED', to: 'CANCELLED', roles: ['CUSTOMER', 'ADMIN'] },
+  { from: 'COMPLETED', to: 'INVOICED', roles: ['ADMIN'] },
+  { from: 'INVOICED', to: 'COMPLETED', roles: ['ADMIN'] },
+  { from: 'INVOICED', to: 'PAID', roles: ['SYSTEM'] },
+  { from: 'PAID', to: 'CLOSED', roles: ['SYSTEM'] },
 ];
 
 export interface TransitionWorkOrderParams {
@@ -27,7 +33,7 @@ export interface TransitionWorkOrderParams {
   to: WorkOrderStatus;
   actor: {
     id: string;
-    role: Role;
+    role: ActorRole;
     ip?: string;
   };
   note?: string;
@@ -106,7 +112,7 @@ export interface RecordWorkOrderEventParams {
   status: WorkOrderStatus;
   actor: {
     id: string;
-    role: Role;
+    role: ActorRole;
     ip?: string;
   };
   note?: string;
