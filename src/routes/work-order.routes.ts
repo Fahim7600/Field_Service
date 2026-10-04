@@ -1,13 +1,18 @@
 import { Router } from 'express';
 import * as workOrderController from '../controllers/work-order.controller';
 import { authenticate, authorize } from '../middlewares/auth';
+import { uploadMultipleImages } from '../middlewares/upload';
 import { validate } from '../middlewares/validate';
 import { idParamSchema, paginationQuery } from '../validators/common.validator';
 import {
   assignTechnicianSchema,
+  cancelWorkOrderSchema,
   listWorkOrdersQuery,
   rejectWorkOrderSchema,
+  rescheduleWorkOrderSchema,
   scheduleWorkOrderSchema,
+  serviceReportBodySchema,
+  updateWorkOrderStatusSchema,
 } from '../validators/work-order.validator';
 
 const router = Router();
@@ -68,6 +73,35 @@ router.post(
   authorize('ADMIN'),
   validate({ params: idParamSchema, body: scheduleWorkOrderSchema }),
   workOrderController.scheduleWorkOrder,
+);
+
+router.patch(
+  '/:id/status',
+  authorize('TECHNICIAN'),
+  validate({ params: idParamSchema, body: updateWorkOrderStatusSchema }),
+  workOrderController.updateTechnicianStatus,
+);
+
+router.post(
+  '/:id/service-report',
+  authorize('TECHNICIAN'),
+  uploadMultipleImages('photos', 5),
+  validate({ params: idParamSchema, body: serviceReportBodySchema }),
+  workOrderController.createServiceReport,
+);
+
+router.post(
+  '/:id/cancel',
+  authorize('CUSTOMER', 'ADMIN'),
+  validate({ params: idParamSchema, body: cancelWorkOrderSchema }),
+  workOrderController.cancelWorkOrder,
+);
+
+router.patch(
+  '/:id/reschedule',
+  authorize('CUSTOMER', 'ADMIN'),
+  validate({ params: idParamSchema, body: rescheduleWorkOrderSchema }),
+  workOrderController.rescheduleWorkOrder,
 );
 
 export default router;
