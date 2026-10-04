@@ -8,6 +8,7 @@ import serviceRequestRoutes from './service-request.routes';
 import technicianRoutes from './technician.routes';
 import technicianApplicationRoutes from './technician-application.routes';
 import userRoutes from './user.routes';
+import workOrderRoutes from './work-order.routes';
 
 const router = Router();
 
@@ -27,6 +28,7 @@ router.use('/users', userRoutes);
 router.use('/technicians', technicianRoutes);
 router.use('/technician-applications', technicianApplicationRoutes);
 router.use('/service-requests', serviceRequestRoutes);
+router.use('/work-orders', workOrderRoutes);
 router.use('/', catalogRoutes);
 router.use('/admin', authenticate, authorize('ADMIN'), adminRoutes);
 
