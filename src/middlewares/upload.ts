@@ -20,3 +20,19 @@ const upload = multer({
 });
 
 export const uploadSingleImage = (fieldName: string) => upload.single(fieldName);
+
+export const uploadMultipleImages = (fieldName: string, maxCount: number) => {
+  return multer({
+    storage,
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+      files: maxCount,
+    },
+    fileFilter: (_req, file, callback) => {
+      if (!allowedMimeTypes.has(file.mimetype)) {
+        return callback(new ApiError(422, 'Only JPG, PNG or WEBP images are allowed'));
+      }
+      callback(null, true);
+    },
+  }).array(fieldName, maxCount);
+};
