@@ -4,6 +4,7 @@ import { sendSuccess } from '../utils/response';
 import adminRoutes from './admin.routes';
 import authRoutes from './auth.routes';
 import catalogRoutes from './catalog.routes';
+import customerRoutes from './customer.routes';
 import serviceRequestRoutes from './service-request.routes';
 import technicianRoutes from './technician.routes';
 import technicianApplicationRoutes from './technician-application.routes';
@@ -25,6 +26,7 @@ router.get('/health', (_req, res) => {
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
+router.use('/customers', customerRoutes);
 router.use('/technicians', technicianRoutes);
 router.use('/technician-applications', technicianApplicationRoutes);
 router.use('/service-requests', serviceRequestRoutes);
