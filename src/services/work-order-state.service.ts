@@ -111,11 +111,13 @@ export interface RecordWorkOrderEventParams {
   };
   note?: string;
   action: string;
+  oldValues?: Prisma.InputJsonValue;
+  newValues?: Prisma.InputJsonValue;
 }
 
 export const recordWorkOrderEvent = async (
   tx: Prisma.TransactionClient,
-  { workOrderId, status, actor, note, action }: RecordWorkOrderEventParams,
+  { workOrderId, status, actor, note, action, oldValues, newValues }: RecordWorkOrderEventParams,
 ) => {
   await tx.workOrderStatusHistory.create({
     data: {
@@ -132,10 +134,11 @@ export const recordWorkOrderEvent = async (
     action,
     entity: 'WorkOrder',
     entityId: workOrderId,
-    newValues: {
+    oldValues,
+    newValues: (newValues ?? {
       status,
       ...(note ? { note } : {}),
-    },
+    }) as Prisma.InputJsonValue,
     ipAddress: actor.ip,
   });
 };
