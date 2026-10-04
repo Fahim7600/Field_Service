@@ -27,6 +27,10 @@ const envSchema = z
     CLOUDINARY_API_KEY: z.string().optional(),
     CLOUDINARY_API_SECRET: z.string().optional(),
     FRONTEND_URL: z.string().default('http://localhost:3000'),
+    STRIPE_SECRET_KEY: z.string().optional(),
+    STRIPE_WEBHOOK_SECRET: z.string().optional(),
+    PUBLIC_API_URL: z.string().default('http://localhost:5000'),
+    TAX_PERCENT: z.coerce.number().min(0).max(100).default(0),
   })
   .refine((data) => data.JWT_ACCESS_SECRET !== data.JWT_REFRESH_SECRET, {
     message: 'JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different',

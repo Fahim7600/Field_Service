@@ -6,6 +6,7 @@ import router from './routes';
 
 const app = express();
 
+app.use('/api/v1/payments/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 app.use('/api/v1', router);
