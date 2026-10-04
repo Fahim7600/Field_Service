@@ -4,6 +4,7 @@ import { sendSuccess } from '../utils/response';
 import adminRoutes from './admin.routes';
 import authRoutes from './auth.routes';
 import catalogRoutes from './catalog.routes';
+import serviceRequestRoutes from './service-request.routes';
 import technicianRoutes from './technician.routes';
 import technicianApplicationRoutes from './technician-application.routes';
 import userRoutes from './user.routes';
@@ -25,6 +26,7 @@ router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/technicians', technicianRoutes);
 router.use('/technician-applications', technicianApplicationRoutes);
+router.use('/service-requests', serviceRequestRoutes);
 router.use('/', catalogRoutes);
 router.use('/admin', authenticate, authorize('ADMIN'), adminRoutes);
 
