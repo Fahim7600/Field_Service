@@ -58,3 +58,29 @@ export const getServiceRequestById = asyncHandler(async (req: Request, res: Resp
     data: { request },
   });
 });
+
+export const updateServiceRequest = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ApiError(401, 'Authentication required');
+  }
+  const request = await serviceRequestService.updateServiceRequest(
+    req.user.id,
+    req.params.id,
+    req.body,
+  );
+  return sendSuccess(res, {
+    message: 'Service request updated successfully',
+    data: { request },
+  });
+});
+
+export const deleteServiceRequest = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ApiError(401, 'Authentication required');
+  }
+  await serviceRequestService.deleteServiceRequest(req.user.id, req.params.id);
+  return sendSuccess(res, {
+    message: 'Service request deleted successfully',
+    data: {},
+  });
+});

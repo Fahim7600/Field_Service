@@ -7,6 +7,7 @@ import {
   createServiceRequestSchema,
   listServiceRequestsQuery,
   searchServiceRequestsQuery,
+  updateServiceRequestSchema,
 } from '../validators/service-request.validator';
 
 const router = Router();
@@ -39,6 +40,20 @@ router.get(
   authorize('CUSTOMER', 'TECHNICIAN', 'ADMIN'),
   validate({ params: idParamSchema }),
   serviceRequestController.getServiceRequestById,
+);
+
+router.patch(
+  '/:id',
+  authorize('CUSTOMER'),
+  validate({ params: idParamSchema, body: updateServiceRequestSchema }),
+  serviceRequestController.updateServiceRequest,
+);
+
+router.delete(
+  '/:id',
+  authorize('CUSTOMER'),
+  validate({ params: idParamSchema }),
+  serviceRequestController.deleteServiceRequest,
 );
 
 export default router;

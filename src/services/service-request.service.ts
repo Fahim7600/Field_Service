@@ -5,6 +5,7 @@ import type {
   CreateServiceRequestInput,
   ListServiceRequestsQuery,
   SearchServiceRequestsQuery,
+  UpdateServiceRequestInput,
 } from '../validators/service-request.validator';
 import { getPremiumStatus } from './premium.service';
 import { getSignedImageUrl } from './upload.service';
@@ -286,4 +287,83 @@ export const getServiceRequestById = async (user: { id: string; role: Role }, id
   }
 
   return formatServiceRequestDetail(request, user.role);
+};
+
+export const updateServiceRequest = async (
+  userId: string,
+  id: string,
+  input: UpdateServiceRequestInput,
+) => {
+  if (input.categoryId) {
+    const category = await prisma.serviceCategory.findFirst({
+      where: { id: input.categoryId, deletedAt: null },
+    });
+    if (!category) {
+      throw new ApiError(404, 'Service category not found');
+    }
+  }
+
+  const { count } = await prisma.serviceRequest.updateMany({
+    where: {
+      id,
+      customerId: userId,
+      status: 'SUBMITTED',
+      deletedAt: null,
+    },
+    data: {
+      ...(input.categoryId ? { categoryId: input.categoryId } : {}),
+      ...(input.title ? { title: input.title } : {}),
+      ...(input.description ? { description: input.description } : {}),
+      ...(input.address ? { address: input.address } : {}),
+      ...(input.preferredAt ? { preferredAt: input.preferredAt } : {}),
+    },
+  });
+
+  if (count === 0) {
+    const existing = await prisma.serviceRequest.findFirst({
+      where: { id },
+    });
+    if (!existing || existing.deletedAt !== null || existing.customerId !== userId) {
+      throw new ApiError(404, 'Service request not found');
+    }
+    throw new ApiError(409, 'Only SUBMITTED requests can be edited');
+  }
+
+  const updated = await prisma.serviceRequest.findUniqueOrThrow({
+    where: { id },
+    include: {
+      category: true,
+      customer: true,
+      attachments: {
+        where: { deletedAt: null },
+      },
+      workOrder: true,
+    },
+  });
+
+  return formatServiceRequestDetail(updated, 'CUSTOMER');
+};
+
+export const deleteServiceRequest = async (userId: string, id: string) => {
+  const { count } = await prisma.serviceRequest.updateMany({
+    where: {
+      id,
+      customerId: userId,
+      status: 'SUBMITTED',
+      deletedAt: null,
+    },
+    data: {
+      deletedAt: new Date(),
+    },
+  });
+
+  if (count === 0) {
+    const existing = await prisma.serviceRequest.findFirst({
+      where: { id },
+    });
+    if (!existing || existing.deletedAt !== null || existing.customerId !== userId) {
+      throw new ApiError(404, 'Service request not found');
+    }
+    throw new ApiError(409, 'Only SUBMITTED requests can be deleted');
+  }
 };
