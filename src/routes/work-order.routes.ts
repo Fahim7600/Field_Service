@@ -1,9 +1,11 @@
 import { Router } from 'express';
+import * as feedbackController from '../controllers/feedback.controller';
 import * as workOrderController from '../controllers/work-order.controller';
 import { authenticate, authorize } from '../middlewares/auth';
 import { uploadMultipleImages } from '../middlewares/upload';
 import { validate } from '../middlewares/validate';
 import { idParamSchema, paginationQuery } from '../validators/common.validator';
+import { createFeedbackSchema } from '../validators/feedback.validator';
 import {
   assignTechnicianSchema,
   cancelWorkOrderSchema,
@@ -102,6 +104,13 @@ router.patch(
   authorize('CUSTOMER', 'ADMIN'),
   validate({ params: idParamSchema, body: rescheduleWorkOrderSchema }),
   workOrderController.rescheduleWorkOrder,
+);
+
+router.post(
+  '/:id/feedback',
+  authorize('CUSTOMER'),
+  validate({ params: idParamSchema, body: createFeedbackSchema }),
+  feedbackController.createFeedback,
 );
 
 export default router;
