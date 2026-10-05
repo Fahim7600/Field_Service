@@ -67,7 +67,7 @@ const postmanEnvironment = {
 };
 
 const envPath = path.join(targetDir, 'Field_Service.postman_environment.json');
-fs.writeFileSync(envPath, JSON.stringify(postmanEnvironment, null, 2), 'utf-8');
+fs.writeFileSync(envPath, `${JSON.stringify(postmanEnvironment, null, 2)}\n`, 'utf-8');
 console.log('✅ Created postman/Field_Service.postman_environment.json');
 
 // 2. Generate Postman Collection from OpenAPI spec
@@ -224,7 +224,7 @@ Converter.convert(
     }
 
     const collectionPath = path.join(targetDir, 'Field_Service.postman_collection.json');
-    fs.writeFileSync(collectionPath, JSON.stringify(collection, null, 2), 'utf-8');
+    fs.writeFileSync(collectionPath, `${JSON.stringify(collection, null, 2)}\n`, 'utf-8');
     console.log('✅ Created postman/Field_Service.postman_collection.json');
     process.exit(0);
   },
