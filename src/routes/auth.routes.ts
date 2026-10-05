@@ -1,15 +1,19 @@
 import { Router } from 'express';
 import * as authController from '../controllers/auth.controller';
 import { authenticateForPasswordChange } from '../middlewares/auth';
+import { strictRateLimiter } from '../middlewares/rateLimiter';
 import { validate } from '../middlewares/validate';
 import {
   changePasswordSchema,
+  googleCallbackQuerySchema,
   loginSchema,
   refreshTokenSchema,
   registerSchema,
 } from '../validators/auth.validator';
 
 const router = Router();
+
+router.use(strictRateLimiter);
 
 router.post('/register', validate({ body: registerSchema }), authController.register);
 router.post('/login', validate({ body: loginSchema }), authController.login);
@@ -27,6 +31,10 @@ router.patch(
   authController.changePassword,
 );
 router.get('/google', authController.googleAuth);
-router.get('/google/callback', authController.googleCallback);
+router.get(
+  '/google/callback',
+  validate({ query: googleCallbackQuerySchema }),
+  authController.googleCallback,
+);
 
 export default router;
