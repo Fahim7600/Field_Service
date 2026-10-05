@@ -42,6 +42,7 @@ const envSchema = z
       }, z.boolean())
       .default(true),
     CORS_ORIGINS: z.string().default('http://localhost:3000'),
+    PUBLIC_BASE_URL: z.string().optional(),
   })
   .refine((data) => data.JWT_ACCESS_SECRET !== data.JWT_REFRESH_SECRET, {
     message: 'JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different',
