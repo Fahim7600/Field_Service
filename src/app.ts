@@ -1,8 +1,10 @@
+import './docs/zod-extend';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import { env } from './config/env';
+import { createDocsRouter } from './docs';
 import { errorHandler } from './middlewares/errorHandler';
 import { notFound } from './middlewares/notFound';
 import { generalRateLimiter } from './middlewares/rateLimiter';
@@ -14,7 +16,16 @@ const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
-app.use(helmet());
+// Relax CSP only for Swagger UI at /docs, keep strict helmet everywhere else
+app.use((req, res, next) => {
+  if (req.path.startsWith('/docs')) {
+    helmet({
+      contentSecurityPolicy: false,
+    })(req, res, next);
+  } else {
+    helmet()(req, res, next);
+  }
+});
 
 const allowedOrigins = env.CORS_ORIGINS.split(',')
   .map((origin) => origin.trim())
@@ -32,6 +43,18 @@ app.use(
     credentials: true,
   }),
 );
+
+// Health check endpoint for external monitors / Render health probe
+app.get('/health', (_req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Swagger UI at /docs and raw OpenAPI JSON at /openapi.json
+app.use(createDocsRouter());
 
 // Raw body for Stripe webhook must come BEFORE express.json()
 app.use('/api/v1/payments/webhook', express.raw({ type: 'application/json' }));

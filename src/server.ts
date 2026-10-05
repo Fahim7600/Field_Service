@@ -4,8 +4,8 @@ import { prisma } from './config/prisma';
 import { startAutoCloseJob } from './jobs/auto-close.job';
 import { closeRedis } from './lib/redis';
 
-const server = app.listen(env.PORT, () => {
-  console.log(`Server is running on http://localhost:${env.PORT}`);
+const server = app.listen(env.PORT, '0.0.0.0', () => {
+  console.log(`Server is running on http://0.0.0.0:${env.PORT}`);
   startAutoCloseJob();
 });
 
