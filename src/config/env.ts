@@ -33,6 +33,15 @@ const envSchema = z
     TAX_PERCENT: z.coerce.number().min(0).max(100).default(0),
     STRIPE_PRICE_MONTHLY: z.string().optional(),
     STRIPE_PRICE_YEARLY: z.string().optional(),
+    REDIS_URL: z.string().optional(),
+    RATE_LIMIT_ENABLED: z
+      .preprocess((val) => {
+        if (typeof val === 'string') return val.toLowerCase() !== 'false';
+        if (typeof val === 'boolean') return val;
+        return true;
+      }, z.boolean())
+      .default(true),
+    CORS_ORIGINS: z.string().default('http://localhost:3000'),
   })
   .refine((data) => data.JWT_ACCESS_SECRET !== data.JWT_REFRESH_SECRET, {
     message: 'JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different',
