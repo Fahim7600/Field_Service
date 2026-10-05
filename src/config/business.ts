@@ -3,6 +3,8 @@ export const LATE_FEE_WINDOW_HOURS = 24;
 export const PREMIUM_DISCOUNT_PERCENT = 10;
 export const STRIPE_MIN_AMOUNT_CENTS = 50;
 export const CHECKOUT_SESSION_MINUTES = 31;
+export const AUTO_CLOSE_DAYS = 7;
+export const ON_TIME_GRACE_MINUTES = 15;
 
 export const PREMIUM_BENEFITS = [
   'Priority queue: your requests get HIGH priority and a 2-hour review target (normal customers: 24 hours)',

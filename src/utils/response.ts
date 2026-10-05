@@ -12,6 +12,7 @@ export interface SendPaginatedOptions<T = unknown> {
   page: number;
   limit: number;
   total: number;
+  extra?: Record<string, unknown>;
 }
 
 export const sendSuccess = (
@@ -27,7 +28,7 @@ export const sendSuccess = (
 
 export const sendPaginated = <T>(
   res: Response,
-  { message = 'Operation successful', items, page, limit, total }: SendPaginatedOptions<T>,
+  { message = 'Operation successful', items, page, limit, total, extra }: SendPaginatedOptions<T>,
 ) => {
   const totalPages = Math.ceil(total / limit);
   return sendSuccess(res, {
@@ -39,6 +40,7 @@ export const sendPaginated = <T>(
       limit,
       total,
       totalPages,
+      ...(extra || {}),
     },
   });
 };
