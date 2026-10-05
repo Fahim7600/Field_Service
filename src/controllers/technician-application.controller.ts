@@ -54,7 +54,10 @@ export const approveApplication = asyncHandler(async (req: Request, res: Respons
   if (!req.user) {
     throw new ApiError(401, 'Authentication required');
   }
-  const result = await techAppService.approveApplication(req.params.id, req.user.id);
+  const result = await techAppService.approveApplication(req.params.id, {
+    id: req.user.id,
+    ip: req.ip,
+  });
   const message = result.emailSent
     ? 'Application approved and credentials emailed'
     : 'Application approved, but the email could not be sent. Use resend-credentials';
@@ -71,7 +74,7 @@ export const rejectApplication = asyncHandler(async (req: Request, res: Response
   }
   const result = await techAppService.rejectApplication(
     req.params.id,
-    req.user.id,
+    { id: req.user.id, ip: req.ip },
     req.body.reason,
   );
   return sendSuccess(res, {
@@ -82,7 +85,10 @@ export const rejectApplication = asyncHandler(async (req: Request, res: Response
 });
 
 export const resendCredentials = asyncHandler(async (req: Request, res: Response) => {
-  const result = await techAppService.resendCredentials(req.params.id);
+  const result = await techAppService.resendCredentials(
+    req.params.id,
+    req.user ? { id: req.user.id, ip: req.ip } : undefined,
+  );
   return sendSuccess(res, {
     statusCode: 200,
     message: 'Credentials resent successfully',

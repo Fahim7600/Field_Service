@@ -50,7 +50,7 @@ export const changePassword = asyncHandler(async (req: Request, res: Response) =
   if (!req.user) {
     throw new ApiError(401, 'Authentication required');
   }
-  const result = await authService.changePassword(req.user.id, req.body);
+  const result = await authService.changePassword(req.user.id, req.body, req.ip);
   return sendSuccess(res, {
     statusCode: 200,
     message: 'Password changed successfully',

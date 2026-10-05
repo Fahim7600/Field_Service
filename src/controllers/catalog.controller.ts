@@ -29,7 +29,8 @@ export const listServiceCategories = asyncHandler(async (req: Request, res: Resp
 });
 
 export const createSkill = asyncHandler(async (req: Request, res: Response) => {
-  const skill = await catalogService.createSkill(req.body.name);
+  const admin = req.user ? { id: req.user.id, ip: req.ip } : undefined;
+  const skill = await catalogService.createSkill(req.body.name, admin);
   return sendSuccess(res, {
     statusCode: 201,
     message: 'Skill created successfully',
@@ -38,7 +39,8 @@ export const createSkill = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const createServiceCategory = asyncHandler(async (req: Request, res: Response) => {
-  const category = await catalogService.createServiceCategory(req.body);
+  const admin = req.user ? { id: req.user.id, ip: req.ip } : undefined;
+  const category = await catalogService.createServiceCategory(req.body, admin);
   return sendSuccess(res, {
     statusCode: 201,
     message: 'Service category created successfully',
@@ -47,7 +49,8 @@ export const createServiceCategory = asyncHandler(async (req: Request, res: Resp
 });
 
 export const updateServiceCategory = asyncHandler(async (req: Request, res: Response) => {
-  const category = await catalogService.updateServiceCategory(req.params.id, req.body);
+  const admin = req.user ? { id: req.user.id, ip: req.ip } : undefined;
+  const category = await catalogService.updateServiceCategory(req.params.id, req.body, admin);
   return sendSuccess(res, {
     statusCode: 200,
     message: 'Service category updated successfully',
@@ -56,7 +59,8 @@ export const updateServiceCategory = asyncHandler(async (req: Request, res: Resp
 });
 
 export const deleteServiceCategory = asyncHandler(async (req: Request, res: Response) => {
-  await catalogService.deleteServiceCategory(req.params.id);
+  const admin = req.user ? { id: req.user.id, ip: req.ip } : undefined;
+  await catalogService.deleteServiceCategory(req.params.id, admin);
   return sendSuccess(res, {
     statusCode: 200,
     message: 'Service category deleted successfully',

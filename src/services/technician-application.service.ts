@@ -8,6 +8,7 @@ import type {
   CreateTechnicianApplicationInput,
   ListTechnicianApplicationsQueryInput,
 } from '../validators/technician-application.validator';
+import { writeAuditLog } from './audit.service';
 import { buildCredentialsEmail, buildRejectionEmail, sendMail } from './mail.service';
 import { createNotification, notifyAdmins } from './notification.service';
 import { getPremiumStatus } from './premium.service';
@@ -336,7 +337,7 @@ export const getApplicationById = async (id: string) => {
   };
 };
 
-export const approveApplication = async (id: string, adminId: string) => {
+export const approveApplication = async (id: string, admin: { id: string; ip?: string }) => {
   const application = await prisma.technicianApplication.findUnique({
     where: { id },
     include: { user: true },
@@ -407,7 +408,7 @@ export const approveApplication = async (id: string, adminId: string) => {
       where: { id },
       data: {
         status: 'APPROVED',
-        reviewedById: adminId,
+        reviewedById: admin.id,
         reviewedAt: new Date(),
         rejectionReason: null,
       },
@@ -423,6 +424,14 @@ export const approveApplication = async (id: string, adminId: string) => {
       },
       tx,
     );
+
+    await writeAuditLog(tx, {
+      actorId: admin.id,
+      action: 'TECHNICIAN_APPLICATION_APPROVED',
+      entity: 'TechnicianApplication',
+      entityId: application.id,
+      ipAddress: admin.ip,
+    });
   });
 
   const emailContent = buildCredentialsEmail({
@@ -447,7 +456,11 @@ export const approveApplication = async (id: string, adminId: string) => {
   };
 };
 
-export const rejectApplication = async (id: string, adminId: string, reason: string) => {
+export const rejectApplication = async (
+  id: string,
+  admin: { id: string; ip?: string },
+  reason: string,
+) => {
   const application = await prisma.technicianApplication.findUnique({
     where: { id },
     include: { user: true },
@@ -461,21 +474,35 @@ export const rejectApplication = async (id: string, adminId: string, reason: str
     throw new ApiError(409, `Application is already ${application.status}`);
   }
 
-  await prisma.technicianApplication.update({
-    where: { id },
-    data: {
-      status: 'REJECTED',
-      rejectionReason: reason,
-      reviewedById: adminId,
-      reviewedAt: new Date(),
-    },
-  });
+  await prisma.$transaction(async (tx) => {
+    await tx.technicianApplication.update({
+      where: { id },
+      data: {
+        status: 'REJECTED',
+        rejectionReason: reason,
+        reviewedById: admin.id,
+        reviewedAt: new Date(),
+      },
+    });
 
-  await createNotification({
-    userId: application.userId,
-    type: 'TECHNICIAN_APPLICATION_REJECTED',
-    title: 'Technician application rejected',
-    message: `Your technician application was not approved: ${reason}`,
+    await createNotification(
+      {
+        userId: application.userId,
+        type: 'TECHNICIAN_APPLICATION_REJECTED',
+        title: 'Technician application rejected',
+        message: `Your technician application was not approved: ${reason}`,
+      },
+      tx,
+    );
+
+    await writeAuditLog(tx, {
+      actorId: admin.id,
+      action: 'TECHNICIAN_APPLICATION_REJECTED',
+      entity: 'TechnicianApplication',
+      entityId: application.id,
+      newValues: { reason },
+      ipAddress: admin.ip,
+    });
   });
 
   const emailContent = buildRejectionEmail({
@@ -497,7 +524,7 @@ export const rejectApplication = async (id: string, adminId: string, reason: str
   };
 };
 
-export const resendCredentials = async (id: string) => {
+export const resendCredentials = async (id: string, admin?: { id: string; ip?: string }) => {
   const application = await prisma.technicianApplication.findUnique({
     where: { id },
     include: { user: true },
@@ -532,6 +559,16 @@ export const resendCredentials = async (id: string) => {
       where: { userId: application.userId, revokedAt: null },
       data: { revokedAt: new Date() },
     });
+
+    if (admin) {
+      await writeAuditLog(tx, {
+        actorId: admin.id,
+        action: 'TECHNICIAN_CREDENTIALS_RESENT',
+        entity: 'TechnicianApplication',
+        entityId: application.id,
+        ipAddress: admin.ip,
+      });
+    }
   });
 
   const emailContent = buildCredentialsEmail({

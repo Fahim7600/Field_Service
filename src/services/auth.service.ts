@@ -4,6 +4,7 @@ import { ApiError } from '../utils/apiError';
 import { comparePassword, DUMMY_HASH, hashPassword } from '../utils/password';
 import { hashToken, signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/token';
 import type { ChangePasswordInput, LoginInput, RegisterInput } from '../validators/auth.validator';
+import { writeAuditLog } from './audit.service';
 import { createNotification } from './notification.service';
 
 export interface SafeUser {
@@ -236,6 +237,7 @@ export const logout = async (userId: string, refreshToken: string): Promise<void
 export const changePassword = async (
   userId: string,
   input: ChangePasswordInput,
+  ipAddress?: string,
 ): Promise<ChangePasswordResult> => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -346,6 +348,14 @@ export const changePassword = async (
         },
         tx,
       );
+
+      await writeAuditLog(tx, {
+        actorId: userId,
+        action: 'TECHNICIAN_ACTIVATED',
+        entity: 'User',
+        entityId: userId,
+        ipAddress,
+      });
     }
 
     await tx.refreshToken.updateMany({
