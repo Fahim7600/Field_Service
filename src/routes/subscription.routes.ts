@@ -2,13 +2,24 @@ import { Router } from 'express';
 import * as subscriptionController from '../controllers/subscription.controller';
 import { authenticate, authorize } from '../middlewares/auth';
 import { validate } from '../middlewares/validate';
-import { checkoutSubscriptionSchema } from '../validators/subscription.validator';
+import {
+  checkoutSubscriptionSchema,
+  subscriptionSessionIdQuerySchema,
+} from '../validators/subscription.validator';
 
 const router = Router();
 
 // Public routes (declared BEFORE authenticated routes)
-router.get('/success', subscriptionController.getSuccessStatus);
-router.get('/cancel', subscriptionController.getCancelStatus);
+router.get(
+  '/success',
+  validate({ query: subscriptionSessionIdQuerySchema }),
+  subscriptionController.getSuccessStatus,
+);
+router.get(
+  '/cancel',
+  validate({ query: subscriptionSessionIdQuerySchema }),
+  subscriptionController.getCancelStatus,
+);
 
 // Authenticated customer routes
 router.post(

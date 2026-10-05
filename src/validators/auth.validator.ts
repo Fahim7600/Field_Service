@@ -49,7 +49,14 @@ export const changePasswordSchema = z
     path: ['newPassword'],
   });
 
+export const googleCallbackQuerySchema = z.object({
+  code: z.string().optional(),
+  state: z.string().optional(),
+  error: z.string().optional(),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type GoogleCallbackQuery = z.infer<typeof googleCallbackQuerySchema>;
