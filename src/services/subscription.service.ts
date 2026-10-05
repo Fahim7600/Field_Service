@@ -9,7 +9,7 @@ import type {
   CheckoutSubscriptionInput,
   ListSubscriptionsQuery,
 } from '../validators/subscription.validator';
-import { getPremiumStatus } from './premium.service';
+import { getPremiumStatus, invalidatePremiumCache } from './premium.service';
 import { syncSubscriptionFromStripe } from './subscription-sync.service';
 
 export const listPlans = async () => {
@@ -211,6 +211,8 @@ export const cancelSubscription = async (customerId: string) => {
       include: { plan: true },
     });
   });
+
+  await invalidatePremiumCache(customerId);
 
   return {
     subscription: {

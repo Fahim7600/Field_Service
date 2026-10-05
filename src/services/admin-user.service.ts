@@ -8,7 +8,7 @@ import type {
 } from '../validators/admin-user.validator';
 import { writeAuditLog } from './audit.service';
 import { createNotification } from './notification.service';
-import { getPremiumStatus } from './premium.service';
+import { getPremiumStatus, invalidatePremiumCache } from './premium.service';
 
 const hasUnfinishedWork = async (
   tx: Prisma.TransactionClient,
@@ -191,6 +191,8 @@ export const updateUserRole = async (
       tx,
     );
 
+    await invalidatePremiumCache(targetId);
+
     return { user: updated };
   });
 };
@@ -301,6 +303,8 @@ export const deleteUser = async (admin: { id: string; ip?: string }, targetId: s
       oldValues: { id: user.id, email: user.email, role: user.role },
       ipAddress: admin.ip,
     });
+
+    await invalidatePremiumCache(targetId);
 
     return {};
   });

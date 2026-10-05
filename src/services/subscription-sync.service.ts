@@ -2,6 +2,7 @@ import type { Prisma, Subscription, SubscriptionStatus } from '@prisma/client';
 import type Stripe from 'stripe';
 import { writeAuditLog } from './audit.service';
 import { createNotification, notifyAdmins } from './notification.service';
+import { invalidatePremiumCache } from './premium.service';
 
 export const syncSubscriptionFromStripe = async (
   tx: Prisma.TransactionClient,
@@ -132,6 +133,7 @@ export const syncSubscriptionFromStripe = async (
       });
     }
 
+    await invalidatePremiumCache(customerId);
     return created;
   }
 
@@ -226,5 +228,6 @@ export const syncSubscriptionFromStripe = async (
     );
   }
 
+  await invalidatePremiumCache(customerId);
   return updated;
 };
