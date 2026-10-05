@@ -10,6 +10,7 @@ import { notFound } from './middlewares/notFound';
 import { generalRateLimiter } from './middlewares/rateLimiter';
 import router from './routes';
 import { ApiError } from './utils/apiError';
+import { sendSuccess } from './utils/response';
 
 const app = express();
 
@@ -43,6 +44,25 @@ app.use(
     credentials: true,
   }),
 );
+
+// Root entry / service directory
+app.get('/', (_req, res) => {
+  return sendSuccess(res, {
+    message: 'Welcome to Field Service Management API',
+    data: {
+      name: 'Field Service Management API',
+      version: '1.0.0',
+      description: 'RESTful API for field service operations, dispatching, and invoicing',
+      endpoints: {
+        documentation: '/docs',
+        openapiSpec: '/openapi.json',
+        health: '/health',
+        apiHealth: '/api/v1/health',
+        apiBase: '/api/v1',
+      },
+    },
+  });
+});
 
 // Health check endpoint for external monitors / Render health probe
 app.get('/health', (_req, res) => {
